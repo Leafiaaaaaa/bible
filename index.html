@@ -3,115 +3,174 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>2026 靈修月曆</title>
+    <title>2026 靈修隨身本</title>
     
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#BC8F8F">
+    <link rel="shortcut icon" href="icon-192.png">
+
     <script src="data.js"></script>
 
     <style>
         :root {
-            --bg-color: #FDF5E6; --card-color: #FFF9F0; --text-color: #4A4A4A;
-            --accent-color: #BC8F8F; --secondary-color: #D2B48C; --success-color: #A3B18A;
-            --nav-bg: #EEDCC6;
+            --bg-color: #FDF5E6;       /* 溫潤米白 */
+            --card-color: #FFF9F0;     /* 淺奶油色 */
+            --text-color: #4A4A4A;     /* 深灰色 */
+            --accent-color: #BC8F8F;   /* 玫瑰褐色 */
+            --secondary-color: #D2B48C;/* 淺褐色 */
+            --success-color: #A3B18A;  /* 鼠尾草綠 */
+            --nav-bg: #EEDCC6;         /* 導航底色 */
         }
-        body { font-family: sans-serif; background: var(--bg-color); color: var(--text-color); margin: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
-        header { padding: 15px; text-align: center; background: var(--card-color); border-bottom: 1px solid var(--secondary-color); font-weight: bold; }
+
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         
+        body { 
+            font-family: -apple-system, "PingFang TC", "Microsoft JhengHei", sans-serif; 
+            background: var(--bg-color); 
+            color: var(--text-color); 
+            margin: 0; 
+            display: flex; 
+            flex-direction: column; 
+            height: 100vh; 
+            overflow: hidden; 
+        }
+
+        header { 
+            padding: 15px; 
+            text-align: center; 
+            background: var(--card-color); 
+            border-bottom: 1px solid var(--secondary-color); 
+            font-weight: bold; 
+            font-size: 1.1rem; 
+        }
+
         main { flex: 1; overflow-y: auto; padding-bottom: 80px; }
+        
         .page { display: none; padding: 15px; animation: fadeIn 0.2s ease; }
         .active { display: block; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-        /* --- 月曆樣式 --- */
-        .calendar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding: 0 10px; }
-        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; background: rgba(188, 143, 143, 0.1); padding: 10px; border-radius: 15px; }
-        .weekday { text-align: center; font-size: 0.75rem; font-weight: bold; color: var(--accent-color); padding-bottom: 5px; }
-        .day-cell { 
-            background: var(--card-color); aspect-ratio: 1; border-radius: 8px; 
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            font-size: 0.9rem; position: relative; cursor: pointer; border: 1px solid transparent;
+        /* 月曆樣式 */
+        .calendar-nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        .nav-arrow { 
+            background: var(--card-color); border: 1px solid var(--secondary-color); 
+            border-radius: 50%; width: 40px; height: 40px; cursor: pointer; 
+            display: flex; align-items: center; justify-content: center; font-size: 1.2rem;
+            color: var(--accent-color);
         }
-        .day-cell.today { border: 2px solid var(--accent-color); font-weight: bold; }
-        .day-cell.done::after { content: "✔"; position: absolute; bottom: 2px; right: 4px; font-size: 0.6rem; color: var(--success-color); }
-        .day-cell.has-content { color: var(--text-color); }
+
+        .calendar-grid { 
+            display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; 
+            background: rgba(188, 143, 143, 0.05); padding: 10px; border-radius: 18px; 
+        }
+
+        .weekday { text-align: center; font-size: 0.75rem; font-weight: bold; color: var(--accent-color); padding: 5px 0; }
+        
+        .day-cell { 
+            background: var(--card-color); aspect-ratio: 1; border-radius: 10px; 
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1rem; position: relative; cursor: pointer;
+        }
+
+        .day-cell.today { border: 2.5px solid var(--accent-color); font-weight: bold; color: var(--accent-color); }
+        .day-cell.done::after { 
+            content: "●"; position: absolute; bottom: 2px; font-size: 0.6rem; color: var(--success-color); 
+        }
         .day-cell.empty { background: transparent; cursor: default; }
 
-        /* --- 詳細進度彈窗 (Modal) --- */
+        /* 彈窗 Modal */
         .modal { 
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
-            background: rgba(0,0,0,0.4); z-index: 100; align-items: center; justify-content: center;
+            background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; padding: 20px; 
         }
         .modal-content { 
-            background: var(--bg-color); width: 85%; max-width: 300px; padding: 25px; 
-            border-radius: 20px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            background: var(--bg-color); width: 100%; max-width: 320px; padding: 30px; 
+            border-radius: 25px; text-align: center; box-shadow: 0 15px 35px rgba(0,0,0,0.2); 
         }
-        .btn-done { 
-            background: var(--accent-color); color: white; border: none; padding: 10px 25px; 
-            border-radius: 20px; margin-top: 15px; cursor: pointer; width: 100%; font-size: 1rem;
+        .btn-action { 
+            background: var(--accent-color); color: white; border: none; padding: 14px; 
+            border-radius: 15px; margin-top: 20px; width: 100%; font-size: 1rem; cursor: pointer; font-weight: bold;
         }
-        .btn-done.is-completed { background: var(--success-color); }
+        .btn-action.is-done { background: var(--success-color); }
 
         /* 底部導航 */
-        .nav { position: fixed; bottom: 0; width: 100%; height: 65px; background: var(--nav-bg); display: flex; justify-content: space-around; align-items: center; }
-        .nav-btn { border: none; background: none; font-size: 0.85rem; display: flex; flex-direction: column; align-items: center; color: var(--text-color); }
-        .nav-btn.active-nav { color: #8b5a5a; font-weight: bold; }
-        .nav-icon { font-size: 1.3rem; margin-bottom: 3px; }
+        .bottom-nav { 
+            position: fixed; bottom: 0; width: 100%; height: 75px; 
+            background: var(--nav-bg); display: flex; justify-content: space-around; 
+            align-items: center; padding-bottom: env(safe-area-inset-bottom); 
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.05); 
+        }
+        .nav-item { 
+            border: none; background: none; font-size: 0.8rem; display: flex; 
+            flex-direction: column; align-items: center; color: var(--text-color); 
+            opacity: 0.5; transition: 0.3s;
+        }
+        .nav-item.active-nav { opacity: 1; font-weight: bold; color: #8b5a5a; }
+        .nav-icon { font-size: 1.5rem; margin-bottom: 4px; }
 
-        /* 日記區 */
-        textarea { width: 100%; height: 350px; border: 1px solid var(--secondary-color); border-radius: 15px; padding: 15px; background: var(--card-color); font-size: 1rem; outline: none; resize: none; }
+        /* 聖經與日記區 */
+        .bible-container { background: var(--card-color); border-radius: 20px; padding: 20px; border: 1px solid var(--secondary-color); line-height: 1.8; }
+        .verse-num { color: var(--secondary-color); font-size: 0.8rem; margin-right: 6px; vertical-align: super; }
+        .chap-title { color: var(--accent-color); border-bottom: 1px solid #eee; padding: 20px 0 5px 0; margin-top: 0; }
+        
+        textarea { 
+            width: 100%; height: 400px; border: 1px solid var(--secondary-color); 
+            border-radius: 20px; padding: 20px; background: var(--card-color); 
+            font-size: 1.05rem; outline: none; resize: none; color: var(--text-color); 
+        }
     </style>
 </head>
 <body>
 
-<header id="top-month">2026年3月</header>
+<header id="main-header">2026 靈修進度</header>
 
 <main>
     <section id="bible" class="page">
-        <div style="background: var(--card-color); padding: 20px; border-radius: 15px; border: 1px solid var(--secondary-color);">
-            <h3 id="bible-title">請先在月曆選擇日期</h3>
-            <p>這裡會顯示您當天選擇的經文進度。</p>
+        <div class="bible-container">
+            <h3 id="bible-title" style="margin-top:0; color:var(--accent-color);">請選擇日期</h3>
+            <div id="bible-body">點擊月曆中的日期，即可在此閱讀經文內容。</div>
         </div>
     </section>
 
     <section id="home" class="page active">
-        <div class="calendar-header">
-            <span style="font-weight: bold; color: var(--accent-color);">March 2026</span>
-            <small>點擊日期查看進度</small>
+        <div class="calendar-nav">
+            <button class="nav-arrow" onclick="changeMonth(-1)">‹</button>
+            <span id="cal-label" style="font-size: 1.2rem; font-weight: bold;">2026年 3月</span>
+            <button class="nav-arrow" onclick="changeMonth(1)">›</button>
         </div>
-        
-        <div class="calendar-grid" id="calendar-body">
-            </div>
+        <div class="calendar-grid" id="calendar-body"></div>
     </section>
 
     <section id="diary" class="page">
-        <textarea id="diary-box" placeholder="寫下今日的心得或禱告..." oninput="saveNote()"></textarea>
+        <textarea id="diary-box" placeholder="今天的靈修心得或禱告..." oninput="saveDiary()"></textarea>
     </section>
 </main>
 
-<div class="modal" id="detail-modal" onclick="closeModal(event)">
+<div class="modal" id="modal" onclick="closeModal()">
     <div class="modal-content" onclick="event.stopPropagation()">
-        <h2 id="modal-date">3月10日</h2>
-        <div id="modal-progress" style="font-size: 1.5rem; margin: 15px 0; font-weight: bold;">出 21-22</div>
-        <button id="modal-confirm-btn" class="btn-done" onclick="toggleComplete()">標記為已達成</button>
-        <p style="margin-top: 15px; color: var(--secondary-color); cursor: pointer;" onclick="closeModal()">關閉</p>
+        <h2 id="modal-date" style="margin-top: 0;">日期</h2>
+        <div id="modal-reading" style="font-size: 1.6rem; margin: 20px 0; font-weight: bold; color: var(--accent-color);">載入中...</div>
+        <button id="modal-btn" class="btn-action" onclick="toggleComplete()">標記為已達成</button>
+        <p style="margin-top: 25px; color: var(--secondary-color); font-weight: bold; cursor: pointer;" onclick="switchToBible()">前往閱讀經文 📖</p>
     </div>
 </div>
 
-<nav class="nav">
-    <button class="nav-btn" onclick="switchPage('bible', this)"><span class="nav-icon">📖</span>聖經</button>
-    <button class="nav-btn active-nav" onclick="switchPage('home', this)"><span class="nav-icon">📅</span>每日進度</button>
-    <button class="nav-btn" onclick="switchPage('diary', this)"><span class="nav-icon">📝</span>日記</button>
+<nav class="bottom-nav">
+    <button class="nav-item" id="nav-bible" onclick="switchPage('bible', this)"><span class="nav-icon">📖</span>聖經</button>
+    <button class="nav-item active-nav" id="nav-home" onclick="switchPage('home', this)"><span class="nav-icon">📅</span>進度</button>
+    <button class="nav-item" id="nav-diary" onclick="switchPage('diary', this)"><span class="nav-icon">📝</span>日記</button>
 </nav>
 
 <script>
     const biblePlan = {};
     const now = new Date();
-    const currentYear = 2026;
-    const currentMonth = now.getMonth() + 1;
-    const today = now.getDate();
-    let selectedDay = today;
+    let viewYear = 2026;
+    let viewMonth = now.getMonth() + 1;
+    let selectedDay = now.getDate();
 
-    // 解析資料
+    // 1. 初始化資料
     function initData() {
+        if (typeof rawBibleData === 'undefined') return;
         rawBibleData.trim().split('\n').forEach(line => {
             const [m, d, content] = line.split('|');
             if(!biblePlan[m]) biblePlan[m] = {};
@@ -119,85 +178,138 @@
         });
     }
 
-    // 生成月曆
+    // 2. 渲染月曆
     function renderCalendar() {
         const grid = document.getElementById('calendar-body');
         grid.innerHTML = "";
-        
-        // 星期標頭
         const weeks = ['日', '一', '二', '三', '四', '五', '六'];
         weeks.forEach(w => grid.innerHTML += `<div class="weekday">${w}</div>`);
 
-        // 計算月曆起始位置
-        const firstDay = new Date(currentYear, currentMonth - 1, 1).getDay();
-        const daysInMonth = new Date(currentYear, currentMonth, 0).getDate();
+        const firstDay = new Date(viewYear, viewMonth - 1, 1).getDay();
+        const daysInMonth = new Date(viewYear, viewMonth, 0).getDate();
 
-        // 填充空白
-        for (let i = 0; i < firstDay; i++) {
-            grid.innerHTML += `<div class="day-cell empty"></div>`;
+        for (let i = 0; i < firstDay; i++) grid.innerHTML += `<div class="day-cell empty"></div>`;
+
+        for (let d = 1; d <= daysInMonth; d++) {
+            const isToday = (d === now.getDate() && viewMonth === (now.getMonth() + 1) && viewYear === now.getFullYear()) ? 'today' : '';
+            const isDone = localStorage.getItem(`done_${viewYear}_${viewMonth}_${d}`) ? 'done' : '';
+            grid.innerHTML += `<div class="day-cell ${isToday} ${isDone}" onclick="openDetail(${d})">${d}</div>`;
+        }
+        document.getElementById('cal-label').innerText = `${viewYear}年 ${viewMonth}月`;
+    }
+
+    // 3. 信望愛 API 串接 (處理多章節)
+    async function fetchFHLBible(readingStr) {
+        const bibleBody = document.getElementById('bible-body');
+        const bibleTitle = document.getElementById('bible-title');
+        
+        if (readingStr === "休息") {
+            bibleTitle.innerText = "今日休息";
+            bibleBody.innerHTML = "今天是休息日，可以默想或是補上之前的進度。";
+            return;
         }
 
-        // 填充日期
-        for (let d = 1; d <= daysInMonth; d++) {
-            const isToday = (d === today) ? 'today' : '';
-            const isDone = localStorage.getItem(`done_${currentMonth}_${d}`) ? 'done' : '';
-            grid.innerHTML += `
-                <div class="day-cell ${isToday} ${isDone}" onclick="openDetail(${d})">
-                    ${d}
-                </div>
-            `;
+        bibleTitle.innerText = readingStr;
+        bibleBody.innerHTML = `<div style="text-align:center; padding:20px;">正在載入全章經文... 📖</div>`;
+
+        try {
+            const parts = readingStr.split(' ');
+            const book = parts[0];
+            const range = parts[1];
+            
+            let chapters = [];
+            if (range.includes('-')) {
+                const [start, end] = range.split('-').map(Number);
+                for (let i = start; i <= end; i++) chapters.push(i);
+            } else {
+                chapters.push(Number(range));
+            }
+            
+            // 同時抓取所有章節
+            const fetchPromises = chapters.map(chap => {
+                const url = `https://bible.fhl.net/json/qb.php?chineses=${encodeURIComponent(book)}&chap=${chap}&version=unv&strong=0&gb=0`;
+                return fetch(url).then(res => res.json());
+            });
+
+            const results = await Promise.all(fetchPromises);
+
+            let html = "";
+            results.forEach(data => {
+                if (data.record && data.record.length > 0) {
+                    html += `<h4 class="chap-title">第 ${data.record[0].chap} 章</h4>`;
+                    data.record.forEach(v => {
+                        html += `<p><span class="verse-num">${v.sec}</span>${v.bible_text}</p>`;
+                    });
+                }
+            });
+
+            bibleBody.innerHTML = html || "找不到經文內容。";
+        } catch (error) {
+            bibleBody.innerHTML = "連線失敗，請檢查網路。";
         }
     }
 
-    // 開啟詳細視窗
     function openDetail(d) {
         selectedDay = d;
-        const reading = biblePlan[currentMonth]?.[d] || "休息";
-        document.getElementById('modal-date').innerText = `${currentMonth}月${d}日`;
-        document.getElementById('modal-progress').innerText = reading;
+        const reading = biblePlan[viewMonth]?.[d] || "休息";
+        document.getElementById('modal-date').innerText = `${viewMonth}月${d}日`;
+        document.getElementById('modal-reading').innerText = reading;
         
-        const btn = document.getElementById('modal-confirm-btn');
-        if(localStorage.getItem(`done_${currentMonth}_${d}`)) {
-            btn.innerText = "已達成 ✨";
-            btn.classList.add('is-completed');
-        } else {
-            btn.innerText = "標記為已達成";
-            btn.classList.remove('is-completed');
-        }
+        const isDone = localStorage.getItem(`done_${viewYear}_${viewMonth}_${d}`);
+        const btn = document.getElementById('modal-btn');
+        btn.innerText = isDone ? "已達成 ✨" : "標記為已達成";
+        btn.className = isDone ? "btn-action is-done" : "btn-action";
         
-        document.getElementById('detail-modal').style.display = 'flex';
+        document.getElementById('modal').style.display = 'flex';
+        fetchFHLBible(reading); 
+    }
+
+    function switchToBible() {
+        closeModal();
+        switchPage('bible', document.getElementById('nav-bible'));
     }
 
     function toggleComplete() {
-        const key = `done_${currentMonth}_${selectedDay}`;
-        if(localStorage.getItem(key)) {
-            localStorage.removeItem(key);
-        } else {
-            localStorage.setItem(key, "true");
-        }
+        const key = `done_${viewYear}_${viewMonth}_${selectedDay}`;
+        localStorage.getItem(key) ? localStorage.removeItem(key) : localStorage.setItem(key, "true");
+        renderCalendar();
         closeModal();
-        renderCalendar(); // 刷新月曆標記
     }
 
-    function closeModal(e) {
-        document.getElementById('detail-modal').style.display = 'none';
+    function changeMonth(delta) {
+        viewMonth += delta;
+        if (viewMonth > 12) { viewMonth = 1; viewYear++; }
+        else if (viewMonth < 1) { viewMonth = 12; viewYear--; }
+        renderCalendar();
     }
 
-    function saveNote() {
-        localStorage.setItem(`note_${currentMonth}_${today}`, document.getElementById('diary-box').value);
-    }
+    function closeModal() { document.getElementById('modal').style.display = 'none'; }
 
     function switchPage(pageId, btn) {
         document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
         document.getElementById(pageId).classList.add('active');
-        document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active-nav'));
+        document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active-nav'));
         btn.classList.add('active-nav');
     }
 
-    // 啟動
+    function saveDiary() {
+        const key = `diary_${viewYear}_${viewMonth}_${selectedDay}`;
+        localStorage.setItem(key, document.getElementById('diary-box').value);
+    }
+
+    // PWA Service Worker 註冊
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('sw.js').then(reg => {
+                console.log('SW 註冊成功');
+            }).catch(err => console.log('SW 註冊失敗', err));
+        });
+    }
+
     initData();
     renderCalendar();
-    document.getElementById('diary-box').value = localStorage.getItem(`note_${currentMonth}_${today}`) || "";
+    document.getElementById('diary-box').value = localStorage.getItem(`diary_${viewYear}_${viewMonth}_${now.getDate()}`) || "";
 </script>
+
 </body>
 </html>
