@@ -142,7 +142,7 @@
     </section>
 
     <section id="diary" class="page">
-        <textarea id="diary-box" placeholder="今天的靈修心得或禱告..." oninput="saveDiary()"></textarea>
+        <textarea id="diary-box" placeholder="寫下今日的心得或禱告..." oninput="saveDiary()"></textarea>
     </section>
 </main>
 
@@ -170,7 +170,10 @@
 
     // 1. 初始化資料
     function initData() {
-        if (typeof rawBibleData === 'undefined') return;
+        if (typeof rawBibleData === 'undefined') {
+            console.error("錯誤：找不到 rawBibleData。請檢查 data.js 是否存在。");
+            return;
+        }
         rawBibleData.trim().split('\n').forEach(line => {
             const [m, d, content] = line.split('|');
             if(!biblePlan[m]) biblePlan[m] = {};
@@ -198,7 +201,7 @@
         document.getElementById('cal-label').innerText = `${viewYear}年 ${viewMonth}月`;
     }
 
-    // 3. 信望愛 API 串接 (處理多章節)
+    // 3. 信望愛 API 串接 (核心修正：支援跨章節顯示)
     async function fetchFHLBible(readingStr) {
         const bibleBody = document.getElementById('bible-body');
         const bibleTitle = document.getElementById('bible-title');
@@ -243,9 +246,9 @@
                 }
             });
 
-            bibleBody.innerHTML = html || "找不到經文內容。";
+            bibleBody.innerHTML = html || "找不到經文內容，請檢查格式。";
         } catch (error) {
-            bibleBody.innerHTML = "連線失敗，請檢查網路。";
+            bibleBody.innerHTML = "連線失敗，請檢查網路狀態。";
         }
     }
 
@@ -300,15 +303,18 @@
     // PWA Service Worker 註冊
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
-            navigator.serviceWorker.register('sw.js').then(reg => {
-                console.log('SW 註冊成功');
-            }).catch(err => console.log('SW 註冊失敗', err));
+            navigator.serviceWorker.register('sw.js').then(() => {
+                console.log('PWA 已啟用');
+            }).catch(err => console.log('PWA 註冊失敗', err));
         });
     }
 
+    // 啟動
     initData();
     renderCalendar();
-    document.getElementById('diary-box').value = localStorage.getItem(`diary_${viewYear}_${viewMonth}_${now.getDate()}`) || "";
+    // 預設讀取今日日記
+    const todayKey = `diary_${now.getFullYear()}_${now.getMonth()+1}_${now.getDate()}`;
+    document.getElementById('diary-box').value = localStorage.getItem(todayKey) || "";
 </script>
 
 </body>
