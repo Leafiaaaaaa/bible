@@ -1,7 +1,7 @@
 {
-  "name": "2026 每日讀經",
+  "name": "兩年讀經進度",
   "short_name": "每日讀經",
-  "description": "2026 靈修進度與聖經閱讀工具",
+  "description": "兩年讀經進度與聖經閱讀工具",
   "start_url": "index.html",
   "display": "standalone",
   "background_color": "#FDF5E6",
@@ -18,4 +18,5 @@
       "type": "image/png"
     }
   ]
+
 }
