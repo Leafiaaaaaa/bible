@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>2026 靈修隨身本</title>
+    <title>兩年讀經進度靈修隨身本</title>
     
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#BC8F8F">
@@ -122,7 +122,7 @@
 </head>
 <body>
 
-<header id="main-header">2026 靈修進度</header>
+<header id="main-header">SJPCT 兩年讀經進度</header>
 
 <main>
     <section id="bible" class="page">
@@ -260,7 +260,7 @@
         
         const isDone = localStorage.getItem(`done_${viewYear}_${viewMonth}_${d}`);
         const btn = document.getElementById('modal-btn');
-        btn.innerText = isDone ? "已達成 ✨" : "標記為已達成";
+        btn.innerText = isDone ? "已達成" : "標記為已達成";
         btn.className = isDone ? "btn-action is-done" : "btn-action";
         
         document.getElementById('modal').style.display = 'flex';
@@ -310,4 +310,5 @@
 
 </body>
 </html>
+
 
