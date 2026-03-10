@@ -1,5 +1,3 @@
-// data.js
-// 格式：月份|日期|進度
 const rawBibleData = `
 1|1|創 1-2
 1|2|創 3-4
